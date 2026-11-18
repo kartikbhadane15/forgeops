@@ -1,37 +1,65 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/common/Layout';
+import LoginPage from './features/auth/LoginPage';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
 import DashboardPage from './features/dashboard/DashboardPage';
 
-export default function App() {
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('forgeops_user');
-    return saved ? JSON.parse(saved) : {
-      email: 'engineer@forgeops.local',
-      fullName: 'Devon Engineer',
-      roles: ['ROLE_ENGINEER']
-    };
-  });
+function PlaceholderPage({ title }) {
+  return (
+    <div className="p-6 rounded-xl border border-slate-800 bg-slate-900/40 text-slate-400">
+      <p className="text-sm">{title} — coming in upcoming phase</p>
+    </div>
+  );
+}
 
-  const handleLogout = () => {
-    localStorage.removeItem('forgeops_token');
-    localStorage.removeItem('forgeops_user');
-    setCurrentUser(null);
-  };
+function AppRoutes() {
+  const { user, logout } = useAuth();
 
   return (
+    <Routes>
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Layout user={user} onLogout={logout} />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="services" element={<PlaceholderPage title="Services Inventory (Phase 3)" />} />
+        <Route path="incidents" element={<PlaceholderPage title="Incident Management (Phase 4)" />} />
+        <Route path="approvals" element={<PlaceholderPage title="Approvals Inbox (Phase 6)" />} />
+        <Route
+          path="audit"
+          element={
+            <ProtectedRoute requiredRoles={['ROLE_APPROVER', 'ROLE_ADMIN']}>
+              <PlaceholderPage title="Audit Trail (Phase 7)" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <ProtectedRoute requiredRoles={['ROLE_ADMIN']}>
+              <PlaceholderPage title="User Administration (Phase 2 — backend done)" />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout user={currentUser} onLogout={handleLogout} />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="services" element={<div className="text-slate-400">Services catalog coming in Phase 3</div>} />
-          <Route path="incidents" element={<div className="text-slate-400">Incidents management coming in Phase 4</div>} />
-          <Route path="approvals" element={<div className="text-slate-400">Approvals inbox coming in Phase 6</div>} />
-          <Route path="audit" element={<div className="text-slate-400">Audit trail coming in Phase 7</div>} />
-          <Route path="admin" element={<div className="text-slate-400">User admin coming in Phase 2</div>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
