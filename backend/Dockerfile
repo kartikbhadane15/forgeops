@@ -1,19 +1,15 @@
 # Multi-stage Dockerfile for ForgeOps Spring Boot Backend
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM maven:3.9.9-eclipse-temurin-21-jammy AS build
 
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
-COPY mvnw ./
-COPY .mvn .mvn
+# Cache dependencies
 COPY pom.xml ./
-
-# Pre-fetch dependencies
-RUN ./mvnw dependency:go-offline -B || true
+RUN mvn dependency:go-offline -B || true
 
 # Copy source code and build production jar
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Runtime Stage
 FROM eclipse-temurin:21-jre-jammy
