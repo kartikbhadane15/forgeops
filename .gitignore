@@ -1,0 +1,23 @@
+# Build and dependency directories
+target/
+**/target/
+node_modules/
+dist/
+build/
+.tools/
+
+# Environment and secrets
+.env
+*.env.local
+*.env.*.local
+
+# IDE and OS files
+.DS_Store
+.idea/
+*.iml
+.vscode/
+*.log
+
+# Docker
+.docker/
+docker-compose.override.yml

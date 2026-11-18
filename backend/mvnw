@@ -1,0 +1,23 @@
+#!/bin/sh
+# ForgeOps Maven Wrapper
+
+if [ -d "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home" ]; then
+    export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"
+    export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOCAL_REPO="$SCRIPT_DIR/../.tools/m2/repository"
+mkdir -p "$LOCAL_REPO"
+
+MVN_BIN=""
+if [ -x "$SCRIPT_DIR/../.tools/apache-maven-3.9.9/bin/mvn" ]; then
+    MVN_BIN="$SCRIPT_DIR/../.tools/apache-maven-3.9.9/bin/mvn"
+elif command -v mvn >/dev/null 2>&1; then
+    MVN_BIN="mvn"
+else
+    echo "Error: Maven not found." >&2
+    exit 1
+fi
+
+exec "$MVN_BIN" -Dmaven.repo.local="$LOCAL_REPO" "$@"
