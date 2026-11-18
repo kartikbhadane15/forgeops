@@ -8,6 +8,7 @@ import DashboardPage from './features/dashboard/DashboardPage';
 import ServicesPage from './features/services/ServicesPage';
 import IncidentsPage from './features/incidents/IncidentsPage';
 import IncidentDetailPage from './features/incidents/IncidentDetailPage';
+import ApprovalsPage from './features/approvals/ApprovalsPage';
 
 function PlaceholderPage({ title }) {
   return (
@@ -35,7 +36,7 @@ function AppRoutes() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="incidents" element={<IncidentsPage />} />
         <Route path="incidents/:id" element={<IncidentDetailPage />} />
-        <Route path="approvals" element={<PlaceholderPage title="Approvals Inbox (Phase 6)" />} />
+        <Route path="approvals" element={<ApprovalsPage />} />
         <Route
           path="audit"
           element={

@@ -1,5 +1,7 @@
 package com.forgeops.dashboard;
 
+import com.forgeops.approval.ActionRequestRepository;
+import com.forgeops.approval.ApprovalStatus;
 import com.forgeops.incident.IncidentEntity;
 import com.forgeops.incident.IncidentRepository;
 import com.forgeops.incident.IncidentStatus;
@@ -22,13 +24,16 @@ public class DashboardService {
     private final EnvironmentRepository envRepo;
     private final MetricSampleRepository metricRepo;
     private final IncidentRepository incidentRepo;
+    private final ActionRequestRepository actionRequestRepo;
 
     public DashboardService(ServiceRepository serviceRepo, EnvironmentRepository envRepo,
-                            MetricSampleRepository metricRepo, IncidentRepository incidentRepo) {
+                            MetricSampleRepository metricRepo, IncidentRepository incidentRepo,
+                            ActionRequestRepository actionRequestRepo) {
         this.serviceRepo = serviceRepo;
         this.envRepo = envRepo;
         this.metricRepo = metricRepo;
         this.incidentRepo = incidentRepo;
+        this.actionRequestRepo = actionRequestRepo;
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +55,7 @@ public class DashboardService {
         dto.setUnavailableServices(unavailable);
 
         dto.setOpenIncidents((int) incidentRepo.countByStatusNot(IncidentStatus.RESOLVED));
-        dto.setPendingApprovalCount(0); // Populated in Phase 6
+        dto.setPendingApprovalCount((int) actionRequestRepo.countByApprovalStatus(ApprovalStatus.PENDING_APPROVAL));
         return dto;
     }
 
