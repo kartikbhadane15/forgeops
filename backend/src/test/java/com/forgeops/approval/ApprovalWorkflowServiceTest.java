@@ -41,6 +41,9 @@ class ApprovalWorkflowServiceTest {
     @Mock
     private SafeSimulatedActionExecutor actionExecutor;
 
+    @Mock
+    private com.forgeops.audit.AuditTrailService auditTrailService;
+
     @InjectMocks
     private ApprovalWorkflowService approvalWorkflowService;
 

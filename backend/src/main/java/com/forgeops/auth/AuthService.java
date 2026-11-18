@@ -1,5 +1,7 @@
 package com.forgeops.auth;
 
+import com.forgeops.audit.AuditTrailService;
+import com.forgeops.audit.AuditEventType;
 import com.forgeops.auth.dto.AuthResponse;
 import com.forgeops.auth.dto.LoginRequest;
 import com.forgeops.common.exception.ResourceNotFoundException;
@@ -15,17 +17,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Service
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final AuditTrailService auditTrailService;
 
-    public AuthService(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, UserRepository userRepository) {
+    public AuthService(
+            AuthenticationManager authenticationManager,
+            JwtTokenProvider tokenProvider,
+            UserRepository userRepository,
+            AuditTrailService auditTrailService
+    ) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
+        this.auditTrailService = auditTrailService;
     }
 
     @Transactional(readOnly = true)
@@ -40,6 +51,16 @@ public class AuthService {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         UserEntity user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + principal.getId()));
+
+        auditTrailService.record(
+                user.getId(),
+                AuditEventType.AUTH_LOGIN_SUCCESS,
+                "USER",
+                user.getId().toString(),
+                null,
+                String.format("User %s successfully authenticated via JWT", user.getEmail()),
+                Map.of("email", user.getEmail())
+        );
 
         return new AuthResponse(jwt, tokenProvider.getExpirationMs(), UserDTO.fromEntity(user));
     }

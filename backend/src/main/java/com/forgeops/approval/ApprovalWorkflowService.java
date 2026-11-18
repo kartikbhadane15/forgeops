@@ -3,6 +3,8 @@ package com.forgeops.approval;
 import com.forgeops.approval.dto.ActionRequestDTO;
 import com.forgeops.approval.dto.CreateActionRequest;
 import com.forgeops.approval.dto.ReviewActionRequest;
+import com.forgeops.audit.AuditEventType;
+import com.forgeops.audit.AuditTrailService;
 import com.forgeops.common.exception.BusinessRuleException;
 import com.forgeops.common.exception.InvalidStateTransitionException;
 import com.forgeops.common.exception.ResourceNotFoundException;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,19 +33,22 @@ public class ApprovalWorkflowService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final SafeSimulatedActionExecutor actionExecutor;
+    private final AuditTrailService auditTrailService;
 
     public ApprovalWorkflowService(
             ActionRequestRepository actionRequestRepository,
             IncidentRepository incidentRepository,
             ServiceRepository serviceRepository,
             UserRepository userRepository,
-            SafeSimulatedActionExecutor actionExecutor
+            SafeSimulatedActionExecutor actionExecutor,
+            AuditTrailService auditTrailService
     ) {
         this.actionRequestRepository = actionRequestRepository;
         this.incidentRepository = incidentRepository;
         this.serviceRepository = serviceRepository;
         this.userRepository = userRepository;
         this.actionExecutor = actionExecutor;
+        this.auditTrailService = auditTrailService;
     }
 
     @Transactional(readOnly = true)
@@ -86,6 +92,17 @@ public class ApprovalWorkflowService {
         );
 
         entity = actionRequestRepository.save(entity);
+
+        auditTrailService.record(
+                requesterId,
+                AuditEventType.ACTION_REQUEST_CREATED,
+                "ACTION_REQUEST",
+                entity.getId().toString(),
+                entity.getIdempotencyKey(),
+                String.format("Action request '%s' created for service '%s'", entity.getActionType(), service.getName()),
+                Map.of("actionType", entity.getActionType().name(), "riskLevel", entity.getRiskLevel())
+        );
+
         return toDTO(entity);
     }
 
@@ -112,6 +129,17 @@ public class ApprovalWorkflowService {
         entity.setReviewedAt(Instant.now());
 
         entity = actionRequestRepository.save(entity);
+
+        auditTrailService.record(
+                reviewerId,
+                AuditEventType.ACTION_REQUEST_APPROVED,
+                "ACTION_REQUEST",
+                entity.getId().toString(),
+                entity.getIdempotencyKey(),
+                String.format("Action request '%s' APPROVED by reviewer", entity.getActionType()),
+                Map.of("comment", entity.getReviewComment() != null ? entity.getReviewComment() : "")
+        );
+
         return toDTO(entity);
     }
 
@@ -137,6 +165,17 @@ public class ApprovalWorkflowService {
         entity.setReviewedAt(Instant.now());
 
         entity = actionRequestRepository.save(entity);
+
+        auditTrailService.record(
+                reviewerId,
+                AuditEventType.ACTION_REQUEST_REJECTED,
+                "ACTION_REQUEST",
+                entity.getId().toString(),
+                entity.getIdempotencyKey(),
+                String.format("Action request '%s' REJECTED by reviewer", entity.getActionType()),
+                Map.of("comment", entity.getReviewComment())
+        );
+
         return toDTO(entity);
     }
 
@@ -173,6 +212,18 @@ public class ApprovalWorkflowService {
         }
 
         entity = actionRequestRepository.save(entity);
+
+        auditTrailService.record(
+                executorId,
+                AuditEventType.ACTION_REQUEST_EXECUTED,
+                "ACTION_REQUEST",
+                entity.getId().toString(),
+                entity.getIdempotencyKey(),
+                String.format("Action '%s' executed against service '%s' with outcome: %s",
+                        entity.getActionType(), entity.getTargetService().getName(), entity.getApprovalStatus()),
+                Map.of("status", entity.getApprovalStatus().name(), "result", entity.getExecutionResult())
+        );
+
         return toDTO(entity);
     }
 

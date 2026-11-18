@@ -9,6 +9,7 @@ import ServicesPage from './features/services/ServicesPage';
 import IncidentsPage from './features/incidents/IncidentsPage';
 import IncidentDetailPage from './features/incidents/IncidentDetailPage';
 import ApprovalsPage from './features/approvals/ApprovalsPage';
+import AuditPage from './features/audit/AuditPage';
 
 function PlaceholderPage({ title }) {
   return (
@@ -41,7 +42,7 @@ function AppRoutes() {
           path="audit"
           element={
             <ProtectedRoute requiredRoles={['ROLE_APPROVER', 'ROLE_ADMIN']}>
-              <PlaceholderPage title="Audit Trail (Phase 7)" />
+              <AuditPage />
             </ProtectedRoute>
           }
         />
