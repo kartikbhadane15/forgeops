@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { incidentsApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
+import AnalysisPanel from './AnalysisPanel';
 
 const SEVERITY_COLORS = {
   SEV1: 'bg-red-500/10 text-red-400 border-red-500/30',
@@ -245,6 +246,12 @@ export default function IncidentDetailPage() {
               </div>
             )}
           </div>
+
+          {/* AI Operational Advisory Panel */}
+          <AnalysisPanel 
+            incidentId={incident.id} 
+            isClosed={incident.status === 'RESOLVED'} 
+          />
 
           {/* Activity Notes / Timeline */}
           <div className="p-5 bg-slate-900/60 border border-slate-800 rounded-xl space-y-4">

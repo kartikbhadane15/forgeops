@@ -61,25 +61,8 @@ public class DashboardService {
     }
 
     private IncidentSummaryDTO toIncidentSummaryDTO(IncidentEntity entity) {
-        UserDTO assigneeDTO = entity.getAssignee() != null ? new UserDTO(
-                entity.getAssignee().getId(),
-                entity.getAssignee().getEmail(),
-                entity.getAssignee().getFullName(),
-                entity.getAssignee().getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()),
-                entity.getAssignee().isEnabled(),
-                entity.getAssignee().getCreatedAt(),
-                entity.getAssignee().getUpdatedAt()
-        ) : null;
-
-        UserDTO createdByDTO = new UserDTO(
-                entity.getCreatedBy().getId(),
-                entity.getCreatedBy().getEmail(),
-                entity.getCreatedBy().getFullName(),
-                entity.getCreatedBy().getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()),
-                entity.getCreatedBy().isEnabled(),
-                entity.getCreatedBy().getCreatedAt(),
-                entity.getCreatedBy().getUpdatedAt()
-        );
+        UserDTO assigneeDTO = entity.getAssignee() != null ? UserDTO.fromEntity(entity.getAssignee()) : null;
+        UserDTO createdByDTO = UserDTO.fromEntity(entity.getCreatedBy());
 
         return new IncidentSummaryDTO(
                 entity.getId(),

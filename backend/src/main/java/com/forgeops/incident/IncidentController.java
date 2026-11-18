@@ -44,7 +44,7 @@ public class IncidentController {
     ) {
         Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Page<IncidentSummaryDTO> result = incidentService.listIncidents(status, severity, serviceId, PageRequest.of(page, size, sort));
-        return ResponseEntity.ok(ApiResponse.ok(PagedResponse.from(result)));
+        return ResponseEntity.ok(ApiResponse.ok(PagedResponse.of(result.getContent(), result)));
     }
 
     @GetMapping("/{id}")
@@ -61,7 +61,7 @@ public class IncidentController {
             @AuthenticationPrincipal UserPrincipal currentUser
     ) {
         IncidentDTO created = incidentService.createIncident(req, currentUser.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(created));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(created, "Incident declared successfully"));
     }
 
     @PostMapping("/{id}/transitions")
@@ -93,6 +93,6 @@ public class IncidentController {
             @AuthenticationPrincipal UserPrincipal currentUser
     ) {
         IncidentNoteDTO note = incidentService.addNote(id, req, currentUser.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(note));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(note, "Note added successfully"));
     }
 }

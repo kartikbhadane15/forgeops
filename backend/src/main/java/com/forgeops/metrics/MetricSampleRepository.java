@@ -19,6 +19,9 @@ public interface MetricSampleRepository extends JpaRepository<MetricSampleEntity
     List<MetricSampleEntity> findByServiceIdAndEnvironmentIdAndSampledAtAfterOrderBySampledAtDesc(
             UUID serviceId, UUID environmentId, Instant since);
 
+    List<MetricSampleEntity> findByServiceIdAndSampledAtAfterOrderBySampledAtDesc(
+            UUID serviceId, Instant since);
+
     @Query("SELECT m FROM MetricSampleEntity m WHERE m.service.id = :sid AND m.metricType = :type ORDER BY m.sampledAt DESC")
     List<MetricSampleEntity> findLatestByServiceAndType(@Param("sid") UUID serviceId, @Param("type") MetricType type);
 }

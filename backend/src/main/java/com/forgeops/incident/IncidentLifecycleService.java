@@ -223,14 +223,6 @@ public class IncidentLifecycleService {
     }
 
     private UserDTO toUserDTO(UserEntity user) {
-        return new UserDTO(
-                user.getId(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()),
-                user.isEnabled(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
+        return UserDTO.fromEntity(user);
     }
 }
