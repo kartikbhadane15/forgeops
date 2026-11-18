@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Activity, Server, AlertTriangle, CheckSquare, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Activity, Server, AlertTriangle, CheckSquare, RefreshCw, TrendingUp, TrendingDown, ArrowRight, ExternalLink } from 'lucide-react';
 import { dashboardApi } from '../../api/endpoints';
 import StatusBadge from '../../components/common/StatusBadge';
 
@@ -52,6 +53,7 @@ function ServiceHealthRow({ svc }) {
 export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [health, setHealth] = useState([]);
+  const [recentIncidents, setRecentIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -59,12 +61,14 @@ export default function DashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const [sumRes, healthRes] = await Promise.all([
+      const [sumRes, healthRes, incRes] = await Promise.all([
         dashboardApi.summary(),
         dashboardApi.serviceHealth(),
+        dashboardApi.recentIncidents().catch(() => ({ data: { data: [] } })),
       ]);
       setSummary(sumRes.data);
       setHealth(healthRes.data);
+      setRecentIncidents(incRes.data?.data || []);
     } catch (err) {
       setError(err?.message || 'Could not connect to backend. Start the Spring Boot server.');
     } finally {
@@ -177,6 +181,49 @@ export default function DashboardPage() {
                 {health.map(svc => <ServiceHealthRow key={svc.serviceId} svc={svc} />)}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Open Incidents section */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            Active Incidents Awaiting Resolution
+          </h2>
+          <Link to="/incidents" className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium">
+            View all incidents <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+        {recentIncidents.length === 0 ? (
+          <div className="p-6 text-center text-slate-500 text-xs">
+            No active incidents in the system. Everything running nominally.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-800/60 font-mono text-xs">
+            {recentIncidents.map((inc) => (
+              <div key={inc.id} className="p-4 flex items-center justify-between hover:bg-slate-800/20 transition-colors">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-emerald-400">{inc.incidentNumber}</span>
+                    <span className="font-sans text-xs font-medium text-white">{inc.title}</span>
+                    <span className="font-sans text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                      {inc.severity}
+                    </span>
+                  </div>
+                  <div className="font-sans text-[11px] text-slate-500">
+                    Service: <span className="text-slate-300">{inc.serviceName}</span> • Env: <span className="text-slate-300">{inc.environmentName}</span>
+                  </div>
+                </div>
+                <Link
+                  to={`/incidents/${inc.id}`}
+                  className="font-sans text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1"
+                >
+                  Triage <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            ))}
           </div>
         )}
       </div>
