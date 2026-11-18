@@ -31,4 +31,9 @@ public class DashboardController {
     public ResponseEntity<ApiResponse<List<ServiceHealthDTO>>> serviceHealth() {
         return ResponseEntity.ok(ApiResponse.ok(dashboardService.getServiceHealthList()));
     }
+
+    @GetMapping("/recent-incidents")
+    public ResponseEntity<ApiResponse<List<com.forgeops.incident.dto.IncidentSummaryDTO>>> recentIncidents() {
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getRecentIncidents()));
+    }
 }

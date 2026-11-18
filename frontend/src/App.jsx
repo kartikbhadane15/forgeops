@@ -6,6 +6,8 @@ import LoginPage from './features/auth/LoginPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import DashboardPage from './features/dashboard/DashboardPage';
 import ServicesPage from './features/services/ServicesPage';
+import IncidentsPage from './features/incidents/IncidentsPage';
+import IncidentDetailPage from './features/incidents/IncidentDetailPage';
 
 function PlaceholderPage({ title }) {
   return (
@@ -31,7 +33,8 @@ function AppRoutes() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="services" element={<ServicesPage />} />
-        <Route path="incidents" element={<PlaceholderPage title="Incident Management (Phase 4)" />} />
+        <Route path="incidents" element={<IncidentsPage />} />
+        <Route path="incidents/:id" element={<IncidentDetailPage />} />
         <Route path="approvals" element={<PlaceholderPage title="Approvals Inbox (Phase 6)" />} />
         <Route
           path="audit"

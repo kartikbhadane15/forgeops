@@ -1,8 +1,13 @@
 package com.forgeops.dashboard;
 
+import com.forgeops.incident.IncidentEntity;
+import com.forgeops.incident.IncidentRepository;
+import com.forgeops.incident.IncidentStatus;
+import com.forgeops.incident.dto.IncidentSummaryDTO;
 import com.forgeops.metrics.MetricSampleRepository;
 import com.forgeops.metrics.MetricType;
 import com.forgeops.serviceinventory.*;
+import com.forgeops.user.dto.UserDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +21,14 @@ public class DashboardService {
     private final ServiceRepository serviceRepo;
     private final EnvironmentRepository envRepo;
     private final MetricSampleRepository metricRepo;
+    private final IncidentRepository incidentRepo;
 
     public DashboardService(ServiceRepository serviceRepo, EnvironmentRepository envRepo,
-                            MetricSampleRepository metricRepo) {
+                            MetricSampleRepository metricRepo, IncidentRepository incidentRepo) {
         this.serviceRepo = serviceRepo;
         this.envRepo = envRepo;
         this.metricRepo = metricRepo;
+        this.incidentRepo = incidentRepo;
     }
 
     @Transactional(readOnly = true)
@@ -42,10 +49,53 @@ public class DashboardService {
         dto.setDegradedServices(degraded);
         dto.setUnavailableServices(unavailable);
 
-        // Incidents and approvals will be populated once those modules are built
-        dto.setOpenIncidents(0);
-        dto.setPendingApprovalCount(0);
+        dto.setOpenIncidents((int) incidentRepo.countByStatusNot(IncidentStatus.RESOLVED));
+        dto.setPendingApprovalCount(0); // Populated in Phase 6
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<IncidentSummaryDTO> getRecentIncidents() {
+        return incidentRepo.findTop5ByStatusNotOrderByCreatedAtDesc(IncidentStatus.RESOLVED)
+                .stream().map(this::toIncidentSummaryDTO).toList();
+    }
+
+    private IncidentSummaryDTO toIncidentSummaryDTO(IncidentEntity entity) {
+        UserDTO assigneeDTO = entity.getAssignee() != null ? new UserDTO(
+                entity.getAssignee().getId(),
+                entity.getAssignee().getEmail(),
+                entity.getAssignee().getFullName(),
+                entity.getAssignee().getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()),
+                entity.getAssignee().isEnabled(),
+                entity.getAssignee().getCreatedAt(),
+                entity.getAssignee().getUpdatedAt()
+        ) : null;
+
+        UserDTO createdByDTO = new UserDTO(
+                entity.getCreatedBy().getId(),
+                entity.getCreatedBy().getEmail(),
+                entity.getCreatedBy().getFullName(),
+                entity.getCreatedBy().getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()),
+                entity.getCreatedBy().isEnabled(),
+                entity.getCreatedBy().getCreatedAt(),
+                entity.getCreatedBy().getUpdatedAt()
+        );
+
+        return new IncidentSummaryDTO(
+                entity.getId(),
+                entity.getIncidentNumber(),
+                entity.getTitle(),
+                entity.getService().getId(),
+                entity.getService().getName(),
+                entity.getEnvironment().getId(),
+                entity.getEnvironment().getName(),
+                entity.getSeverity(),
+                entity.getStatus(),
+                assigneeDTO,
+                createdByDTO,
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
+        );
     }
 
     @Transactional(readOnly = true)
