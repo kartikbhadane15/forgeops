@@ -5,6 +5,7 @@ import Layout from './components/common/Layout';
 import LoginPage from './features/auth/LoginPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import DashboardPage from './features/dashboard/DashboardPage';
+import ServicesPage from './features/services/ServicesPage';
 
 function PlaceholderPage({ title }) {
   return (
@@ -29,7 +30,7 @@ function AppRoutes() {
         }
       >
         <Route index element={<DashboardPage />} />
-        <Route path="services" element={<PlaceholderPage title="Services Inventory (Phase 3)" />} />
+        <Route path="services" element={<ServicesPage />} />
         <Route path="incidents" element={<PlaceholderPage title="Incident Management (Phase 4)" />} />
         <Route path="approvals" element={<PlaceholderPage title="Approvals Inbox (Phase 6)" />} />
         <Route
