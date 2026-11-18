@@ -36,7 +36,8 @@ public class AuditEventEntity {
     @Column(name = "safe_summary", nullable = false, columnDefinition = "TEXT")
     private String safeSummary;
 
-    @Column(name = "details", columnDefinition = "TEXT")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "details", columnDefinition = "jsonb")
     private String detailsJson;
 
     @CreatedDate

@@ -32,16 +32,20 @@ public class IncidentAnalysisEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
 
-    @Column(name = "possible_causes", nullable = false, columnDefinition = "TEXT")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "possible_causes", nullable = false, columnDefinition = "jsonb")
     private String possibleCausesJson;
 
-    @Column(name = "investigation_steps", nullable = false, columnDefinition = "TEXT")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "investigation_steps", nullable = false, columnDefinition = "jsonb")
     private String investigationStepsJson;
 
-    @Column(name = "proposed_actions", nullable = false, columnDefinition = "TEXT")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "proposed_actions", nullable = false, columnDefinition = "jsonb")
     private String proposedActionsJson;
 
-    @Column(name = "limitations", nullable = false, columnDefinition = "TEXT")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "limitations", nullable = false, columnDefinition = "jsonb")
     private String limitationsJson;
 
     @CreatedDate
