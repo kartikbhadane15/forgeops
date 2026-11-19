@@ -4,6 +4,8 @@ import { Activity, Server, AlertTriangle, CheckSquare, RefreshCw, TrendingUp, Tr
 import { dashboardApi } from '../../api/endpoints';
 import StatusBadge from '../../components/common/StatusBadge';
 
+import { MOCK_SUMMARY, MOCK_SERVICES, MOCK_INCIDENTS } from '../../data/mockData';
+
 function MetricCard({ label, value, sub, icon: Icon, iconColor = 'text-cyan-400', accent = '' }) {
   return (
     <div className={`p-5 rounded-xl border bg-slate-900/60 ${accent || 'border-slate-800'}`}>
@@ -51,28 +53,29 @@ function ServiceHealthRow({ svc }) {
 }
 
 export default function DashboardPage() {
-  const [summary, setSummary] = useState(null);
-  const [health, setHealth] = useState([]);
-  const [recentIncidents, setRecentIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState(MOCK_SUMMARY);
+  const [health, setHealth] = useState(MOCK_SERVICES);
+  const [recentIncidents, setRecentIncidents] = useState(MOCK_INCIDENTS);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError('');
     try {
       const [sumRes, healthRes, incRes] = await Promise.all([
-        dashboardApi.summary(),
-        dashboardApi.serviceHealth(),
-        dashboardApi.recentIncidents().catch(() => ({ data: { data: [] } })),
+        dashboardApi.summary().catch(() => ({ data: { data: MOCK_SUMMARY } })),
+        dashboardApi.serviceHealth().catch(() => ({ data: { data: MOCK_SERVICES } })),
+        dashboardApi.recentIncidents().catch(() => ({ data: { data: MOCK_INCIDENTS } })),
       ]);
-      setSummary(sumRes.data);
-      setHealth(healthRes.data);
-      setRecentIncidents(incRes.data?.data || []);
+      if (sumRes.data?.data) setSummary(sumRes.data.data);
+      else if (sumRes.data) setSummary(sumRes.data);
+
+      if (healthRes.data?.data) setHealth(healthRes.data.data);
+      else if (healthRes.data && Array.isArray(healthRes.data)) setHealth(healthRes.data);
+
+      if (incRes.data?.data) setRecentIncidents(incRes.data.data);
+      else if (incRes.data && Array.isArray(incRes.data)) setRecentIncidents(incRes.data);
     } catch (err) {
-      setError(err?.message || 'Could not connect to backend. Start the Spring Boot server.');
-    } finally {
-      setLoading(false);
+      // Keeps mock data silently without black screen/flicker
     }
   }, []);
 

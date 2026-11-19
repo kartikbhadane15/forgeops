@@ -28,7 +28,9 @@ api.interceptors.response.use(
       code: 'NETWORK_ERROR',
     };
 
-    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
+    // Only redirect to login if not a demo token
+    const currentToken = localStorage.getItem('forgeops_token');
+    if (error.response?.status === 401 && !window.location.pathname.includes('/login') && currentToken && !currentToken.startsWith('demo-')) {
       localStorage.removeItem('forgeops_token');
       localStorage.removeItem('forgeops_user');
       window.location.href = '/login';
