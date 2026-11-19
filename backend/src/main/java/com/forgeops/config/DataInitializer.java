@@ -145,11 +145,17 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUser(String email, String hash, String name, Set<RoleEntity> roles) {
-        if (!userRepo.existsByEmail(email)) {
+        userRepo.findByEmail(email).ifPresentOrElse(u -> {
+            u.setPasswordHash(hash);
+            u.setEnabled(true);
+            u.setRoles(roles);
+            userRepo.save(u);
+            log.info("Updated existing user credentials: {}", email);
+        }, () -> {
             UserEntity u = new UserEntity(email, hash, name);
             u.setRoles(roles);
             userRepo.save(u);
             log.info("Seeded user: {}", email);
-        }
+        });
     }
 }
