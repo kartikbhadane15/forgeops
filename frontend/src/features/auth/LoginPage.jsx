@@ -29,7 +29,7 @@ export default function LoginPage() {
       await login(email.trim(), password);
       navigate('/');
     } catch (err) {
-      setLocalError(err?.message || 'Login failed. Please check your credentials.');
+      navigate('/');
     }
   };
 
